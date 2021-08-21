@@ -1,0 +1,15 @@
+#!/bin/bash -ex
+
+
+RAILS_BRANCH='replace-webpack-with-importmapped-hotwire-as-default-js'
+
+main() {
+  f1
+}
+
+
+f1() {
+  echo "F1"
+}
+  
+main
