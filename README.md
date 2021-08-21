@@ -1,6 +1,6 @@
 
-- Creates a rails (7) app daily
-- Pushes to github.com/la-ruby/created-rails-7-app
+- Creates a rails app daily
+- Pushes to [github.com/la-ruby/created-rails-7-app](https://www.github.com/la-ruby/created-rails-7-app)
 
 
 ```
