@@ -64,13 +64,19 @@ rails_new() {
   fi
 
   (cd ${CACHE_B_DIR}
-   bundle install)
-  (cd ${CACHE_C_DIR};
-   ${CACHE_B_DIR}/railties/exe/rails --version
-   ${CACHE_B_DIR}/railties/exe/rails new --help
-   ${CACHE_B_DIR}/railties/exe/rails new . --dev --database=postgresql
+   bundle install
+   ./railties/exe/rails --version
+   ./railties/exe/rails new created-rails-app ${CACHE_C_DIR} --dev --database=postgresql
+   cd ${CACHE_C_DIR}
    git add --all
    git commit -m "Did rails new . --dev --database=postgresql")
+  
+  # (cd ${CACHE_C_DIR};
+  #  ${CACHE_B_DIR}/railties/exe/rails --version
+  #  ${CACHE_B_DIR}/railties/exe/rails new --help
+  #  ${CACHE_B_DIR}/railties/exe/rails new . --dev --database=postgresql
+  #  git add --all
+  #  git commit -m "Did rails new . --dev --database=postgresql")
 }
 
 upload() {
