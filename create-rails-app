@@ -63,6 +63,9 @@ rails_new() {
     return
   fi
 
+  (cd ${CACHE_B_DIR};
+   bundle exec ./railties/exe/rails --version)  
+  aborthere
   (cd ${CACHE_C_DIR};
    ${CACHE_B_DIR}/railties/exe/rails --version
    ${CACHE_B_DIR}/railties/exe/rails new --help
