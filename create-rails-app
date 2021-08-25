@@ -1,15 +1,107 @@
-#!/bin/bash -ex
+#!/bin/bash -eu
 
-
+VERSION="1.1" # Version of this script
+WORKSPACE="${HOME}/.create-rails-app/${VERSION}"
+CACHE_A_DIR="${WORKSPACE}/cache_a"  # Ruby versions
+CACHE_B_DIR="${WORKSPACE}/cache_b"  # Railtie
+CACHE_C_DIR="${WORKSPACE}/cache_c"  # rails new generation
 RAILS_BRANCH='replace-webpack-with-importmapped-hotwire-as-default-js'
+TODAY=$(date +"%d-%m-%Y")
+EPOCH="${TODAY}-$(date +%s)" # seconds since epoch
+
+# Uncomment during development
+set -x
+USE_CACHE_A="1"
+USE_CACHE_B="1"
+USE_CACHE_C="1"
+
 
 main() {
-  f1
+  prep
+  checkout
+  rails_new
+  upload
 }
 
 
-f1() {
-  echo "F1"
+prep() {
+  mkdir -p ${CACHE_B_DIR}
+  mkdir -p ${CACHE_A_DIR}
+  mkdir -p ${CACHE_C_DIR}
+  check_ruby_version
 }
-  
+
+
+check_ruby_version() {
+  if [ -n "$(ls -A ${CACHE_A_DIR} 2>/dev/null)" ] && [ "${USE_CACHE_A}" -eq "1" ]; then
+    echo "Using CACHE_A ${CACHE_A_DIR}"
+  else
+    curl -s https://cache.ruby-lang.org/pub/ruby/index.txt > ${CACHE_A_DIR}/index.txt
+  fi
+
+  expected_version=$(cat ${CACHE_A_DIR}/index.txt | tail -n 1 | cut -f1 | cut -d '-' -f2)
+  found_version=$(ruby -v | perl -nle 'm/ruby ([\d\.]*)/; print $1')
+  if ! [ "${expected_version}" = "${found_version}" ]; then
+    echo "error: Ruby ${expected_version} expected"
+    exit 1
+  fi
+}
+
+
+checkout() {
+  if [ -n "$(ls -A ${CACHE_B_DIR} 2>/dev/null)" ] && [ "${USE_CACHE_B}" -eq "1" ]; then
+    echo "Using CACHE_B ${CACHE_B_DIR}"
+    return
+  fi
+  git clone -b "${RAILS_BRANCH}" --single-branch https://github.com/rails/rails ${CACHE_B_DIR}
+}
+
+
+rails_new() {
+  if [ -n "$(ls -A ${CACHE_C_DIR} 2>/dev/null)" ] && [ "${USE_CACHE_C}" -eq "1" ]; then
+    echo "Using CACHE_C ${CACHE_C_DIR}"
+    return
+  fi
+
+  (cd ${CACHE_C_DIR};
+   ${CACHE_B_DIR}/railties/exe/rails new . --dev --database=postgresql
+   git add --all
+   git commit -m "Did rails new . --dev --database=postgresql")
+}
+
+upload() {
+  (cd ${WORKSPACE}
+   git clone git@github.com:la-ruby/created-rails-7-app.git downloaded-created-rails-7-app || true
+   cd ${WORKSPACE}/downloaded-created-rails-7-app/
+
+   # Non-cumilative branch e.g.  23-08-2021-1629735904
+   git checkout --orphan ${EPOCH}
+   find -not -path "./.git/*" -not -name ".git" -delete
+   rsync -aP --exclude='.git/' --exclude='node_modules/*' ${CACHE_C_DIR}/ ${WORKSPACE}/downloaded-created-rails-7-app/
+   git config user.email "example@example.com"
+   git config user.name "Sam Bot"
+   git add --all
+   git commit -m "Updates for ${TODAY}" || true
+   git push origin HEAD
+
+   # Cumilative branch (main)
+   git checkout main
+   find -not -path "./.git/*" -not -name ".git" -delete
+   rsync -aP --exclude='.git/' --exclude='node_modules/*' ${CACHE_C_DIR}/ ${WORKSPACE}/downloaded-created-rails-7-app/
+   git config user.email "example@example.com"
+   git config user.name "Sam Bot"
+   git add --all
+   git commit -m "Updates for ${TODAY}" || true
+   git push origin main)
+}
+
+
+find() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    gfind "$@"
+  else
+    find "$@"
+  fi
+}
+
 main
