@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 
-VERSION="1.1" # Version of this script
+VERSION="1.3" # Version of this script
 WORKSPACE="${HOME}/.create-rails-app/${VERSION}"
 CACHE_A_DIR="${WORKSPACE}/cache_a"  # Ruby versions
 CACHE_B_DIR="${WORKSPACE}/cache_b"  # Railtie
@@ -66,6 +66,7 @@ rails_new() {
   (cd ${CACHE_B_DIR}
    bundle install
    bundle exec ./railties/exe/rails --version
+   git config --global init.defaultBranch main # useful at github actions
    bundle exec ./railties/exe/rails new created-rails-app ${CACHE_C_DIR} --dev --database=postgresql
    cd ${CACHE_C_DIR}
    git add --all
