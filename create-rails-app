@@ -64,7 +64,9 @@ rails_new() {
   fi
 
   (cd ${CACHE_C_DIR};
-   bundle exec ${CACHE_B_DIR}/railties/exe/rails new . --dev --database=postgresql
+   ${CACHE_B_DIR}/railties/exe/rails --version
+   ${CACHE_B_DIR}/railties/exe/rails new --help
+   ${CACHE_B_DIR}/railties/exe/rails new . --dev --database=postgresql
    git add --all
    git commit -m "Did rails new . --dev --database=postgresql")
 }
