@@ -1,13 +1,14 @@
 #!/bin/bash -eu
 
-VERSION="1.3" # Version of this script
+VERSION="1.7" # Version of this script
 WORKSPACE="${HOME}/.create-rails-app/${VERSION}"
 CACHE_A_DIR="${WORKSPACE}/cache_a"  # Ruby versions
 CACHE_B_DIR="${WORKSPACE}/cache_b"  # Railtie
 CACHE_C_DIR="${WORKSPACE}/cache_c"  # rails new generation
-RAILS_BRANCH='replace-webpack-with-importmapped-hotwire-as-default-js'
+RAILS_BRANCH='main'
 TODAY=$(date +"%d-%m-%Y")
 EPOCH="${TODAY}-$(date +%s)" # seconds since epoch
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Uncomment during development
 set -x
@@ -63,42 +64,62 @@ rails_new() {
     return
   fi
 
+
   (cd ${CACHE_B_DIR}
    bundle install
    bundle exec ./railties/exe/rails --version
+   bundle exec ./railties/exe/rails new --help
    git config --global init.defaultBranch main # useful at github actions
-   bundle exec ./railties/exe/rails new created-rails-app ${CACHE_C_DIR} --dev --database=postgresql
-   cd ${CACHE_C_DIR}
+   bundle exec ./railties/exe/rails new ${CACHE_C_DIR}/created-rails-app --dev --database=postgresql --no-webpack --skip-hotwire
+   cd ${CACHE_C_DIR}/created-rails-app
    git add --all
-   git commit -m "Did rails new . --dev --database=postgresql")
-  
-  # (cd ${CACHE_C_DIR};
-  #  ${CACHE_B_DIR}/railties/exe/rails --version
-  #  ${CACHE_B_DIR}/railties/exe/rails new --help
-  #  ${CACHE_B_DIR}/railties/exe/rails new . --dev --database=postgresql
-  #  git add --all
-  #  git commit -m "Did rails new . --dev --database=postgresql")
+   git commit -m "Did bundle exec ./railties/exe/rails new created-rails-app --dev --database=postgresql --no-webpack --skip-hotwire"
+   fix_gemfile # because rails new with --dev creates a locally pointing Gemfile
+   bundle add hotwire-rails --git https://github.com/hotwired/hotwire-rails.git
+   git add --all
+   git commit -m "bundle add hotwire-rails --git https://github.com/hotwired/hotwire-rails.git"
+   ./bin/rails hotwire:install # need ./bin/rails turbo:install:redis ?
+   git add --all
+   git commit -m "./bin/rails hotwire:install")
+}
+
+
+##
+# Re-point gemfile entry for rails gem
+#
+fix_gemfile() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  ${SCRIPT_DIR}/bin/sed -i '/^gem "rails"/c\REMOVED' Gemfile # remove line
+  replacement="gem 'rails', :github => 'rails/rails', :branch => '${RAILS_BRANCH}'"
+  ${SCRIPT_DIR}/bin/sed -i "/^REMOVED/c\\$replacement" Gemfile # add back line
+  rm Gemfile.lock
+  bundle install
+
+  # these 2 is probably not needed, its there to make nokigiri happy
+  bundle lock --add-platform ruby
+  bundle lock --remove-platform x86_64-linux || true # its ok to fail on macos
+  git add --all
+  git commit -m 'Use proper path for gem "rails", path: "...'
 }
 
 upload() {
-  (cd ${WORKSPACE}
-   git clone git@github.com:la-ruby/created-rails-7-app.git downloaded-created-rails-7-app || true
-   cd ${WORKSPACE}/downloaded-created-rails-7-app/
-
-   # Non-cumilative branch e.g.  23-08-2021-1629735904
-   git checkout --orphan ${EPOCH}
-   find -not -path "./.git/*" -not -name ".git" -delete
-   rsync -aP --exclude='.git/' --exclude='node_modules/*' ${CACHE_C_DIR}/ ${WORKSPACE}/downloaded-created-rails-7-app/
+  (
+   # branch with clean history, orpaned root, e.g. 23-08-2021-1629735904
+   cd ${CACHE_C_DIR}/created-rails-app
    git config user.email "example@example.com"
    git config user.name "Sam Bot"
-   git add --all
-   git commit -m "Updates for ${TODAY}" || true
-   git push origin HEAD
+   git remote add remote1 git@github.com:la-ruby/created-rails-7-app.git
+   git push remote1 main:${EPOCH}
 
-   # Cumilative branch (main)
+   # main branch with deltas
+   cd ${WORKSPACE}
+   git clone git@github.com:la-ruby/created-rails-7-app.git downloaded-created-rails-7-app || true
+   cd ${WORKSPACE}/downloaded-created-rails-7-app/
+   git config user.email "example@example.com"
+   git config user.name "Sam Bot"
    git checkout main
    find -not -path "./.git/*" -not -name ".git" -delete
-   rsync -aP --exclude='.git/' --exclude='node_modules/*' ${CACHE_C_DIR}/ ${WORKSPACE}/downloaded-created-rails-7-app/
+   rsync -aP --exclude='.git/' --exclude='node_modules/*' ${CACHE_C_DIR}/created-rails-app/ ${WORKSPACE}/downloaded-created-rails-7-app/
    git config user.email "example@example.com"
    git config user.name "Sam Bot"
    git add --all
