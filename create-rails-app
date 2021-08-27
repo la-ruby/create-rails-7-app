@@ -21,6 +21,7 @@ main() {
   prep
   checkout
   rails_new
+  install_gems
   upload
 }
 
@@ -72,6 +73,8 @@ rails_new() {
    git config --global init.defaultBranch main # useful at github actions
    bundle exec ./railties/exe/rails new ${CACHE_C_DIR}/created-rails-app --dev --database=postgresql --no-webpack --skip-hotwire
    cd ${CACHE_C_DIR}/created-rails-app
+   git config user.email "example@example.com"
+   git config user.name "Sam Bot"
    git add --all
    git commit -m "Did bundle exec ./railties/exe/rails new created-rails-app --dev --database=postgresql --no-webpack --skip-hotwire"
    fix_gemfile # because rails new with --dev creates a locally pointing Gemfile
@@ -100,6 +103,26 @@ fix_gemfile() {
   bundle lock --remove-platform x86_64-linux || true # its ok to fail on macos
   git add --all
   git commit -m 'Use proper path for gem "rails", path: "...'
+}
+
+##
+# Some useful gems
+#
+install_gems() {
+  install_pundit
+}
+
+##
+# Install pundit
+#
+install_pundit() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  bundle add pundit
+  git add --all
+  git commit -m 'Install pundit'  
+  bundle exec rails g pundit:install
+  git add --all
+  git commit -m 'Install pundit'
 }
 
 upload() {
