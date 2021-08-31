@@ -194,6 +194,7 @@ install_simplecov() {
   git commit -m 'Install simplecov'
   cat ${SCRIPT_DIR}/files/simplecov.rb spec/rails_helper.rb > /tmp/file3.txt
   mv /tmp/file3.txt spec/rails_helper.rb
+  echo "coverage" >> .gitignore
   git add --all
   git commit -m 'Install simplecov'
 }
