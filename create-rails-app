@@ -66,7 +66,6 @@ rails_new() {
     return
   fi
 
-
   (cd ${CACHE_B_DIR}
    bundle install
    bundle exec ./railties/exe/rails --version
@@ -115,6 +114,7 @@ install_gems() {
   install_factory_bot
   install_vcr
   install_bootstrap
+  install_simplecov
 }
 
 
@@ -185,6 +185,18 @@ install_bootstrap() {
   git commit -m 'Install bootstrap'
 }
 
+
+install_simplecov() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  echo "gem 'simplecov', require: false, group: :test" >> Gemfile
+  bundle install  
+  git add --all
+  git commit -m 'Install simplecov'
+  cat ${SCRIPT_DIR}/files/simplecov.rb spec/rails_helper.rb > /tmp/file3.txt
+  mv /tmp/file3.txt spec/rails_helper.rb
+  git add --all
+  git commit -m 'Install simplecov'
+}
 
 setup_demos() {
   cd ${CACHE_C_DIR}/created-rails-app
