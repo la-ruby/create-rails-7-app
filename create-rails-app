@@ -115,6 +115,7 @@ install_gems() {
   install_vcr
   install_bootstrap
   install_simplecov
+  install_devise
 }
 
 
@@ -198,6 +199,20 @@ install_simplecov() {
   git add --all
   git commit -m 'Install simplecov'
 }
+
+
+install_devise() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  echo "gem 'devise', git: 'git@github.com:zrzka/devise.git', branch: 'rails7'" >> Gemfile
+  bundle install
+  ./bin/rails generate devise:install
+  ./bin/rails generate devise User
+  ./bin/rails generate devise:views users
+  ./bin/rails generate devise:controllers users
+  git add --all
+  git commit -m 'Install devise'
+}
+
 
 setup_demos() {
   cd ${CACHE_C_DIR}/created-rails-app
