@@ -22,6 +22,7 @@ main() {
   checkout
   rails_new
   install_gems
+  setup_demos
   upload
 }
 
@@ -110,7 +111,12 @@ fix_gemfile() {
 #
 install_gems() {
   install_pundit
+  install_rspec
+  install_factory_bot
+  install_vcr
+  install_bootstrap
 }
+
 
 ##
 # Install pundit
@@ -124,6 +130,72 @@ install_pundit() {
   git add --all
   git commit -m 'Install pundit'
 }
+
+
+install_rspec() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  bundle add rspec-rails
+  git add --all
+  git commit -m 'Install rspec'
+  ./bin/rails generate rspec:install
+  mkdir spec/support
+  git add --all
+  git commit -m 'Install rspec'
+}
+
+
+install_factory_bot() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  bundle add factory_bot_rails --group development,test
+  git add --all
+  git commit -m 'Install factory_bot_rails'
+}
+
+
+install_vcr() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  bundle add vcr webmock
+  cp ${SCRIPT_DIR}/files/vcr.rb spec/support/
+  git add --all
+  git commit -m 'Install vcr'
+}
+
+
+install_bootstrap() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  bundle add bootstrap
+  git add --all
+  git commit -m 'Install bootstrap'
+  replacement=' *= require bootswatch'
+  ${SCRIPT_DIR}/bin/sed -i "/require_tree/c\\$replacement" app/assets/stylesheets/application.css
+  git add --all
+  git commit -m 'Install bootstrap'
+  cp -r ${SCRIPT_DIR}/files/bootswatch.scss app/assets/stylesheets/
+  git add --all
+  git commit -m 'Install bootstrap'
+  cp -r ${SCRIPT_DIR}/files/bootswatch app/assets/stylesheets/
+  git add --all
+  git commit -m 'Install bootstrap'
+  echo 'import "bootstrap"' >> app/javascript/application.js
+  git add --all
+  git commit -m 'Install bootstrap'
+  cp ${SCRIPT_DIR}/files/importmap.rb /tmp/importmap.rb
+  ${SCRIPT_DIR}/bin/sed -i '$e cat /tmp/importmap.rb' config/importmap.rb
+  git add --all
+  git commit -m 'Install bootstrap'
+}
+
+
+setup_demos() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  bin/rails generate scaffold post title:string body:text published:boolean
+  git add --all
+  git commit -m 'Generated scaffold post title:string body:text published:boolean'
+  cat ${SCRIPT_DIR}/files/bootswatch_kitchen_sink.html >> app/views/posts/index.html.erb
+  git add --all
+  git commit -m 'Added bootstrap kitchen sink to /posts page'
+}
+
 
 upload() {
   (
