@@ -30,3 +30,5 @@
                  ▽                                                      |_|\_\ 
 ```
 
+- devise
+- direnv manages env variables
