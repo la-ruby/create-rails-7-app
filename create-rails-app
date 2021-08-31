@@ -223,12 +223,12 @@ upload() {
 }
 
 
-find() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    gfind "$@"
-  else
-    find "$@"
-  fi
-}
+# find() {
+#   if [[ "$OSTYPE" == "darwin"* ]]; then
+#     gfind "$@"
+#   else
+#     find "$@"
+#   fi
+# }
 
 main
