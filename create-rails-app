@@ -212,6 +212,10 @@ install_devise() {
   ./bin/rails generate devise:controllers users
   git add --all
   git commit -m 'Install devise'
+  ${SCRIPT_DIR}/bin/sed -i '$ d' config/initializers/devise.rb # remove last line
+  cat ${SCRIPT_DIR}/files/devise.rb >> config/initializers/devise.rb
+  git add --all
+  git commit -m 'Install devise'
 }
 
 
