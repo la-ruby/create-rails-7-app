@@ -22,6 +22,7 @@ main() {
   checkout
   rails_new
   install_gems
+  setup_gitignore
   setup_demos
   upload
 }
@@ -203,7 +204,7 @@ install_simplecov() {
 
 install_devise() {
   cd ${CACHE_C_DIR}/created-rails-app
-  echo "gem 'devise', git: 'git@github.com:zrzka/devise.git', branch: 'rails7'" >> Gemfile
+  echo "gem 'devise', git: 'https://github.com/zrzka/devise.git', branch: 'rails7'" >> Gemfile
   bundle install
   ./bin/rails generate devise:install
   ./bin/rails generate devise User
@@ -211,6 +212,14 @@ install_devise() {
   ./bin/rails generate devise:controllers users
   git add --all
   git commit -m 'Install devise'
+}
+
+
+setup_gitignore() {
+  cd ${CACHE_C_DIR}/created-rails-app
+  echo ".envrc" >> .gitignore
+  git add --all
+  git commit -m 'Setup for direnv'
 }
 
 
