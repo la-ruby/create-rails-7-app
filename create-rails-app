@@ -188,7 +188,7 @@ install_bootstrap() {
 
 setup_demos() {
   cd ${CACHE_C_DIR}/created-rails-app
-  bin/rails generate scaffold post title:string body:text published:boolean
+  bin/rails generate scaffold post title:string body:text published:boolean --no-test-framework
   git add --all
   git commit -m 'Generated scaffold post title:string body:text published:boolean'
   cat ${SCRIPT_DIR}/files/bootswatch_kitchen_sink.html >> app/views/posts/index.html.erb
